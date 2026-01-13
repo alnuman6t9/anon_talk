@@ -3,34 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nobody gonna know</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Void | Premium Wall</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="notif" class="toast">Someone replied to your post!</div>
     <div class="glow"></div>
-    <div id="notif" class="notif">New reply received!</div>
-    
     <div class="container">
-        <div class="logo">বলো নির্ভয়ে, পরিচয় ছাড়াই</div>
-        
+        <div class="logo">VOID</div>
         <div class="glass-card">
-            <textarea id="box" placeholder="Share a secret..." maxlength="500"></textarea>
+            <textarea id="box" placeholder="What's your secret?" maxlength="500"></textarea>
             <div class="card-ft">
                 <span id="chars">0/500</span>
-                <button onclick="sendPost()">Post</button>
+                <button onclick="sendPost()">Post Anonymously</button>
             </div>
         </div>
-
         <div class="tabs">
             <button class="t-btn active" onclick="setTab('new', this)">Recent</button>
-            <button class="t-btn" onclick="setTab('hot', this)">Trending</button>
+            <button class="t-btn" onclick="setTab('hot', this)">Hot</button>
             <button class="t-btn" onclick="setTab('old', this)">History</button>
         </div>
-
         <div id="feed"></div>
     </div>
     <script src="script.js"></script>
 </body>
 </html>
-
