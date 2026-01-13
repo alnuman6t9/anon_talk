@@ -1,28 +1,39 @@
 let currentTab = 'new';
+let lastPostCount = 0;
 const box = document.getElementById('box');
 const feed = document.getElementById('feed');
 
 // Character counter
 box.oninput = () => document.getElementById('chars').innerText = `${box.value.length}/500`;
 
-// 1. Fetch data
+// 1. Fetch data smoothly
 async function load(isAuto = false) {
     try {
         const res = await fetch(`/api/posts?filter=${currentTab}`);
         const posts = await res.json();
-        if (isAuto) checkNotif(posts);
-        render(posts);
+        
+        // Only re-render if something actually changed (new post, new like, or new reply)
+        // We use a simple JSON string check to see if the data is different
+        const currentState = JSON.stringify(posts);
+        if (sessionStorage.getItem('last_state') !== currentState) {
+            if (isAuto) checkNotif(posts);
+            render(posts);
+            sessionStorage.setItem('last_state', currentState);
+        }
     } catch (e) { console.error("Sync error", e); }
 }
 
-// 2. Render UI
+// 2. Render UI (No flickering)
 function render(posts) {
+    // Save scroll position so the page doesn't jump
+    const scrollPos = window.scrollY;
+    
     feed.innerHTML = posts.map(p => `
         <div class="post">
-            <div class="post-text">${escapeHTML(p.content)}</div>
+            <div class="post-text" style="white-space: pre-wrap;">${escapeHTML(p.content)}</div>
             <div class="actions">
                 <span class="action-link" onclick="like(${p.id})">♥ ${p.likes}</span>
-                <span class="action-link" onclick="document.getElementById('ri-${p.id}').style.display='block'">Reply</span>
+                <span class="action-link" onclick="toggleReplyBox(${p.id})">Reply</span>
                 <span>${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
             <div class="replies">
@@ -33,22 +44,33 @@ function render(posts) {
     `).join('');
 }
 
+function toggleReplyBox(id) {
+    const el = document.getElementById(`ri-${id}`);
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    if(el.style.display === 'block') el.focus();
+}
+
 // 3. Actions
 async function sendPost() {
     const content = box.value.trim();
     if (!content) return;
     const res = await fetch('/api/posts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content})});
     const data = await res.json();
+    
     const mine = JSON.parse(localStorage.getItem('mine') || '[]');
     mine.push(data.id);
     localStorage.setItem('mine', JSON.stringify(mine));
+    
     box.value = '';
+    document.getElementById('chars').innerText = "0/500";
     load();
 }
 
 async function like(id) {
     const liked = JSON.parse(localStorage.getItem('liked') || '[]');
     if (liked.includes(id)) return;
+    
+    // UI update for speed
     await fetch(`/api/posts/${id}/like`, {method:'POST'});
     liked.push(id);
     localStorage.setItem('liked', JSON.stringify(liked));
@@ -66,10 +88,10 @@ function setTab(t, el) {
     document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     currentTab = t;
+    sessionStorage.removeItem('last_state'); // Force re-render on tab change
     load();
 }
 
-// Security Helper
 function escapeHTML(str) {
     return str.replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag]));
 }
@@ -91,13 +113,14 @@ function checkNotif(posts) {
     });
 }
 
-// --- INTERVALS ---
-load();
-// 1. Live update every 5 seconds (smooth data update)
+// --- CONTROLS ---
+
+load(); // Initial load
+
+// Check for new data every 5 seconds (Silent background sync)
 setInterval(() => load(true), 5000); 
 
-// 2. Full Page Refresh every 30 minutes (1800000 ms)
+// FULL PAGE REFRESH only every 30 minutes
 setInterval(() => {
-    console.log("30-minute refresh triggered");
     location.reload();
 }, 1800000);
