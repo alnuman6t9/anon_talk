@@ -7,25 +7,27 @@ box.oninput = () => document.getElementById('chars').innerText = `${box.value.le
 
 // 1. Fetch data
 async function load(isAuto = false) {
-    const res = await fetch(`/api/posts?filter=${currentTab}`);
-    const posts = await res.json();
-    if (isAuto) checkNotif(posts);
-    render(posts);
+    try {
+        const res = await fetch(`/api/posts?filter=${currentTab}`);
+        const posts = await res.json();
+        if (isAuto) checkNotif(posts);
+        render(posts);
+    } catch (e) { console.error("Sync error", e); }
 }
 
 // 2. Render UI
 function render(posts) {
     feed.innerHTML = posts.map(p => `
         <div class="post">
-            <div>${p.content}</div>
+            <div class="post-text">${escapeHTML(p.content)}</div>
             <div class="actions">
                 <span class="action-link" onclick="like(${p.id})">♥ ${p.likes}</span>
                 <span class="action-link" onclick="document.getElementById('ri-${p.id}').style.display='block'">Reply</span>
                 <span>${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
             <div class="replies">
-                ${p.replies.map(r => `<div class="reply">↳ ${r.content}</div>`).join('')}
-                <input id="ri-${p.id}" class="r-input" placeholder="Enter to reply..." onkeydown="if(event.key==='Enter') reply(${p.id}, this)">
+                ${p.replies.map(r => `<div class="reply">↳ ${escapeHTML(r.content)}</div>`).join('')}
+                <input id="ri-${p.id}" class="r-input" placeholder="Type a reply..." onkeydown="if(event.key==='Enter') reply(${p.id}, this)">
             </div>
         </div>
     `).join('');
@@ -33,8 +35,9 @@ function render(posts) {
 
 // 3. Actions
 async function sendPost() {
-    if (!box.value.trim()) return;
-    const res = await fetch('/api/posts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content: box.value})});
+    const content = box.value.trim();
+    if (!content) return;
+    const res = await fetch('/api/posts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content})});
     const data = await res.json();
     const mine = JSON.parse(localStorage.getItem('mine') || '[]');
     mine.push(data.id);
@@ -53,6 +56,7 @@ async function like(id) {
 }
 
 async function reply(id, el) {
+    if (!el.value.trim()) return;
     await fetch(`/api/posts/${id}/reply`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content: el.value})});
     el.value = '';
     load();
@@ -65,7 +69,12 @@ function setTab(t, el) {
     load();
 }
 
-// 4. Notifications & Live Feed (Auto-refresh every 5s)
+// Security Helper
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[tag]));
+}
+
+// 4. Notifications
 function checkNotif(posts) {
     const mine = JSON.parse(localStorage.getItem('mine') || '[]');
     mine.forEach(id => {
@@ -75,12 +84,20 @@ function checkNotif(posts) {
             if (post.replies.length > count) {
                 const n = document.getElementById('notif');
                 n.classList.add('show');
-                setTimeout(() => n.classList.remove('show'), 3000);
+                setTimeout(() => n.classList.remove('show'), 4000);
                 localStorage.setItem(`r_${id}`, post.replies.length);
             }
         }
     });
 }
 
+// --- INTERVALS ---
 load();
-setInterval(() => load(true), 5000); // This makes it a "Live Feed"
+// 1. Live update every 5 seconds (smooth data update)
+setInterval(() => load(true), 5000); 
+
+// 2. Full Page Refresh every 30 minutes (1800000 ms)
+setInterval(() => {
+    console.log("30-minute refresh triggered");
+    location.reload();
+}, 1800000);
