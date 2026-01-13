@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Wall</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>The Wall</h1>
+            <p>Post anonymously. It stays forever.</p>
+        </header>
+
+        <div class="composer">
+            <textarea id="postContent" placeholder="Write something..." maxlength="280"></textarea>
+            <button onclick="submitPost()">Post</button>
+        </div>
+
+        <div id="loading">Loading posts...</div>
+        <div id="feed" class="feed"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
