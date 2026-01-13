@@ -4,31 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nobody gonna know</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="bg-gradient"></div>
+    <div class="glow"></div>
+    <div id="notif" class="notif">New reply received!</div>
+    
     <div class="container">
-        <header>
-            <div class="logo">বলো নির্ভয়ে, পরিচয় ছাড়াই</div>
-            <p>A Secure Anonymous Communication System.</p>
-        </header>
-
-        <div class="composer-card">
-            <textarea id="postContent" placeholder="What is your secret today?" maxlength="500"></textarea>
-            <div class="composer-footer">
-                <span id="charCount">0 / 500</span>
-                <button onclick="submitPost()" id="postBtn">Post Anonymously</button>
+        <div class="logo">VOID</div>
+        
+        <div class="glass-card">
+            <textarea id="box" placeholder="Share a secret..." maxlength="500"></textarea>
+            <div class="card-ft">
+                <span id="chars">0/500</span>
+                <button onclick="sendPost()">Post</button>
             </div>
         </div>
 
-        <div id="loading" class="loader"></div>
-        <div id="feed" class="feed"></div>
+        <div class="tabs">
+            <button class="t-btn active" onclick="setTab('new', this)">Recent</button>
+            <button class="t-btn" onclick="setTab('hot', this)">Trending</button>
+            <button class="t-btn" onclick="setTab('old', this)">History</button>
+        </div>
+
+        <div id="feed"></div>
     </div>
     <script src="script.js"></script>
 </body>
 </html>
-
