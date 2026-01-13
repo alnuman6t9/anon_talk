@@ -1,10 +1,7 @@
 {
-  "name": "anon-board-vercel",
-  "version": "1.0.0",
+  "name": "premium-anon-wall",
+  "version": "1.1.0",
   "main": "api/index.js",
-  "scripts": {
-    "start": "node api/index.js"
-  },
   "dependencies": {
     "express": "^4.18.2",
     "body-parser": "^1.20.2",
